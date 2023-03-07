@@ -14,18 +14,21 @@ public class MatrixCalc {
             switch (input) {
                 case "c" -> {
                     System.out.println("Выбран ввод из консоли.");
-                    methods.getDataFromConsole(reader);
-                    methods.toTriangularForm();
+                    if(methods.getDataFromConsole(reader) != status.ERROR)
+                        methods.toTriangularForm();
                 }
                 case "f" -> {
                     System.out.println("Выбран ввод из файла.");
-                    methods.getDataFromFile(reader);
-                    methods.toTriangularForm();
+                    if(methods.getDataFromFile(reader) != status.ERROR)
+                        methods.toTriangularForm();
                 }
                 case "auto" ->{
                     System.out.println("Выбрано автозаполнение");
-                    methods.generateMatrix(reader);
-                    methods.toTriangularForm();
+                    if(methods.generateMatrix(reader) != status.ERROR)
+                        methods.toTriangularForm();
+                }
+                case "h" ->{
+                    methods.help();
                 }
                 case "exit" -> {
                     System.out.println("Завершение.");

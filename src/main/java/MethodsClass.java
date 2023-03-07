@@ -11,38 +11,38 @@ public class MethodsClass {
     public int n;
     public double[][] matrix;
 
-    public void getDataFromConsole(BufferedReader reader) throws IOException {
+    public status getDataFromConsole(BufferedReader reader) throws IOException {
         System.out.println("Введите размерность квадратной матрицы:");
         try {
             n = Integer.parseInt(reader.readLine());
             if(n < 2){
                 System.out.println("Размерность не может быть меньше 2!");
-                return;
+                return status.ERROR;
             }
-
             matrix = new double[n][n+1];
         }catch (NumberFormatException e){
             System.out.println("Размерность матрицы должна быть представлена целым числом!");
-            return;
+            return status.ERROR;
         }
 
         System.out.println("Количество строк и столбцов для ввода: " + n +"\nФормат ввода: а11 а12 а13 b1");
         for (int i = 0; i < n; i++) {
 
-                if(parseString(reader.readLine(), i) == STATUS.ERROR)
-                    i--;
+                if(parseString(reader.readLine(), i) == status.ERROR)
+                    return status.ERROR;
         }
         printMatrix(matrix);
+        return status.OK;
     }
 
-    public void getDataFromFile(BufferedReader reader) throws IOException {
+    public status getDataFromFile(BufferedReader reader) throws IOException {
         System.out.println("Введите пусть к файлу:");
         BufferedReader in;
         try {
             in = new BufferedReader(new FileReader(reader.readLine()));
         }catch (FileNotFoundException e){
             System.out.println("Файл не найден!");
-            return;
+            return status.ERROR;
         }
 
 
@@ -54,33 +54,34 @@ public class MethodsClass {
             }catch (NumberFormatException e){
                 System.out.println("Некорректно задана размерность матрицы! В первой строке должно быть одно число.");
                 e.printStackTrace();
-                return;
+                return status.ERROR;
             }
         }
 
         int i = 0;
         while((line = in.readLine()) != null)
         {
-            if (parseString(line,i) == STATUS.OK)
+            if (parseString(line,i) == status.OK)
                 i++;
         }
         in.close();
         printMatrix(matrix);
+        return status.OK;
     }
 
-    public void generateMatrix(BufferedReader reader) throws IOException{
+    public status generateMatrix(BufferedReader reader) throws IOException{
         System.out.println("Введите размерность квадратной матрицы:");
         try {
             n = Integer.parseInt(reader.readLine());
             if(n < 2){
                 System.out.println("Размерность не может быть меньше 2!");
-                return;
+                return status.ERROR;
             }
 
             matrix = new double[n][n+1];
         }catch (NumberFormatException e){
             System.out.println("Размерность матрицы должна быть представлена целым числом!");
-            return;
+            return status.ERROR;
         }
 
         for (int i = 0; i < n; i++) {
@@ -89,6 +90,7 @@ public class MethodsClass {
             }
         }
         printMatrix(matrix);
+        return status.OK;
     }
 
     public void toTriangularForm(){
@@ -105,29 +107,38 @@ public class MethodsClass {
         }
 
         printMatrix(matrix);
-        System.out.println("Определитель матрицы: " + determinantForTriangleMatrix(matrix));
+        System.out.println("Определитель матрицы: " + determinantForTriangleMatrix(matrix,swaps));
         answer(matrix);
     }
 
-    public double determinantForTriangleMatrix(double[][] matrix){
+    public double determinantForTriangleMatrix(double[][] matrix, int swaps){
         double det = 1.0;
         for (int i = 0; i < matrix.length; i++) {
             det = det*matrix[i][i];
         }
-        return det;
+        if(swaps%2 == 0)
+            return det;
+        else
+            return -det;
     }
 
     public void helloGauss() throws IOException {
         System.out.println(FileUtils.readFileToString(new File("Hello.txt"), "Unicode"));
     }
 
-    private STATUS parseString(String in, int row){
+    public void help() throws IOException {
+        System.out.println(FileUtils.readFileToString(new File("help.txt"), "UTF-8"));
+    }
+
+    private status parseString(String in, int row){
         String[] input = in.trim()
                 .replaceAll(" +", " ")
                 .split(" ");
-        if(input.length > n+1) {
-            System.out.println("Количество элементов в строке не соответствует " + n );
-            return STATUS.ERROR;
+        System.out.println(input.length);
+        if(input.length > n+1 || input.length < n+1) {
+            System.out.println("Количество элементов в строке не соответствует " + n + ",\n" +
+                    " повторите ввод строки/исправьте данные!" );
+            return status.ERROR;
         }
         else {
             int j =0;
@@ -138,12 +149,12 @@ public class MethodsClass {
                 }catch (NumberFormatException e){
                     e.printStackTrace();
                     System.out.println("Данные должны быть представлены числами!");
-                    return STATUS.ERROR;
+                    return status.ERROR;
                 }
                 j++;
             }
         }
-        return STATUS.OK;
+        return status.OK;
     }
 
     private void printMatrix(double[][] matrix){
@@ -157,15 +168,15 @@ public class MethodsClass {
             for (int j = 0; j < size; j++) {
 
                 if (matrix[i][j] >= 0)
-                    line.append(" ").append(round(matrix[i][j],2)).append(" ");
+                    line.append(" ").append(round(matrix[i][j])).append(" ");
                 else
-                    line.append(round(matrix[i][j],2)).append(" ");
+                    line.append(round(matrix[i][j])).append(" ");
 
             }
             if(matrix[i][size] >=0)
-                line.append("| ").append(round(matrix[i][size],2));
+                line.append("| ").append(round(matrix[i][size]));
             else
-                line.append("|").append(round(matrix[i][size],2));
+                line.append("|").append(round(matrix[i][size]));
 
             if(i == 0)
                 line = new StringBuilder("/" + line + "\\");
@@ -180,11 +191,10 @@ public class MethodsClass {
         System.out.println("Матрица имеет вид:\n"+stringBuilder);
     }
 
-    private double round(double value, int places) {
-        if (places < 0) throw new IllegalArgumentException();
+    private double round(double value) {
 
         BigDecimal bd = BigDecimal.valueOf(value);
-        bd = bd.setScale(places, RoundingMode.HALF_UP);
+        bd = bd.setScale(2, RoundingMode.HALF_UP);
         return bd.doubleValue();
     }
 
@@ -224,7 +234,7 @@ public class MethodsClass {
         LinkedList<Double> allX = new LinkedList<>();
         double rightSide;
         int border = matrix.length-1;
-        int allXcounter;
+        int allXCounter;
 
         allX.add(0, matrix[matrix.length - 1][matrix.length] / matrix[matrix.length - 1][matrix.length - 1]);
 
@@ -234,22 +244,51 @@ public class MethodsClass {
             System.out.println("array:" + Arrays.toString(array));
             System.out.println("i:"+i);
             rightSide = 0.0;
-            allXcounter = 0;
+            allXCounter = 0;
             for (int j = rows-1; j >= border; j--) {
                 System.out.println("j:"+j);
                 System.out.println("array[j]:" + array[j]);
-                System.out.println("allX[" + allXcounter + "]:"+allX.get(allXcounter));
+                System.out.println("allX[" + allXCounter + "]:"+allX.get(allXCounter));
 
-                rightSide -= array[j]*allX.get(allXcounter);
-                allXcounter++;
+                rightSide -= array[j]*allX.get(allXCounter);
+                allXCounter++;
             }
-            allX.add(allXcounter,rightSide/array[border-1]);
+            System.out.println("det" + array[border-1]);
+            allX.add(allXCounter,rightSide/array[border-1]);
             border--;
             System.out.println("=======================");
 
         }
 
-        System.out.println(allX);
+        StringBuilder sbX = new StringBuilder();
+        int c = 1;
+        for (int i = allX.size()-1; i >=0 ; i--) {
+            sbX.append("x").append(c).append("=").append(round(allX.get(i))).append(" \n");
+            c++;
+        }
+        System.out.println(sbX);
+
+        StringBuilder sbR = new StringBuilder();
+        double[] xRow;
+        for (int i = rows-1; i >= 0; i--) {
+            xRow = matrix[i];
+//            System.out.println(Arrays.toString(xRow));
+//            double sum = xRow[xRow.length-1];
+            double sum = 0;
+            for (int j = xRow.length-2; j >=0 ; j--) {
+//                System.out.println("x "+xRow[j]);
+//                System.out.println("c "+allX.get(xRow.length-2-j));
+                  sum = sum + xRow[j]*allX.get(xRow.length-2-j);
+//                sum = sum - xRow[j]*allX.get(xRow.length-2-j);
+            }
+            System.out.println("sum " + sum);
+//            System.out.println("+++++");
+            sbR.append("r").append(i+1).append("=").append(xRow[xRow.length-1]).append("\n");
+        }
+
+        System.out.println(sbR);
+
+        printMatrix(matrix);
 
     }
 
