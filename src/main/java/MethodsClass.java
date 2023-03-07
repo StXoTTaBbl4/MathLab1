@@ -224,17 +224,17 @@ public class MethodsClass {
         LinkedList<Double> allX = new LinkedList<>();
         double rightSide;
         int border = matrix.length-1;
-        int allXcounter = 0;
+        int allXcounter;
 
         allX.add(0, matrix[matrix.length - 1][matrix.length] / matrix[matrix.length - 1][matrix.length - 1]);
 
-        System.out.println(allX.get(allXcounter));
 
         for (int i = rows-2; i >= 0; i--) {
             array = matrix[i];
-            System.out.println(Arrays.toString(array));
-            System.out.println(i + "===");
+            System.out.println("array:" + Arrays.toString(array));
+            System.out.println("i:"+i);
             rightSide = 0.0;
+            allXcounter = 0;
             for (int j = rows-1; j >= border; j--) {
                 System.out.println("j:"+j);
                 System.out.println("array[j]:" + array[j]);
@@ -245,6 +245,7 @@ public class MethodsClass {
             }
             allX.add(allXcounter,rightSide/array[border-1]);
             border--;
+            System.out.println("=======================");
 
         }
 
